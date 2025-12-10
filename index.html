@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>長輩圖產生器 2.0 - 智慧祝福版</title>
+    <title>問候圖產生器 2.0 - 智慧祝福版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
     <style>
@@ -279,7 +279,7 @@
         // 下載 (傳統方式)
         function downloadImage() {
             const link = document.createElement('a');
-            link.download = `長輩圖_${new Date().getTime()}.png`;
+            link.download = `問候圖_${new Date().getTime()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         }
