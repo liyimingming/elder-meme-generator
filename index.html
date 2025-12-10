@@ -3,312 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>問候圖產生器 2.0 - 智慧祝福版</title>
+    <title>長輩圖產生器 4.0 - 經典復刻版</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@900&display=swap" rel="stylesheet">
     <style>
         body { font-family: "Microsoft JhengHei", "Heiti TC", sans-serif; }
-        /* 使用襯線體讓長輩圖更有味道 */
-        .serif-font { font-family: 'Noto Serif TC', serif; }
-        canvas { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        /* 隱藏 scrollbar 但保持功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 模擬圖片透明背景 */
+        canvas { 
+            background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), 
+                              linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 旋轉 loading 動畫 */
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #a855f7;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 2s linear infinite;
-            display: inline-block;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-orange-50 min-h-screen flex flex-col items-center py-6">
+<body class="bg-slate-100 min-h-screen flex flex-col items-center py-4">
 
-    <header class="text-center mb-4 px-4">
-        <h1 class="text-3xl font-black text-red-600 mb-1">🌅 長輩圖產生器 2.0</h1>
-        <p id="holiday-msg" class="text-green-700 font-bold text-lg">平安喜樂，日日是好日</p>
+    <header class="text-center mb-4">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-yellow-500 mb-1 drop-shadow-sm">
+            🌸 經典長輩圖產生器 4.0
+        </h1>
+        <p class="text-gray-500 text-sm">致敬 rei.idv.tw 風格 | 支援直排、漸層、AI背景</p>
     </header>
 
-    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 px-4">
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 px-4">
         
-        <div class="bg-white p-5 rounded-xl shadow-lg border-2 border-orange-200 space-y-6 h-fit">
+        <div class="lg:col-span-5 space-y-4 h-[85vh] overflow-y-auto no-scrollbar pb-20">
             
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <label class="block text-blue-800 font-bold mb-2 flex items-center">
-                    🤖 AI 寫作助手 <span class="text-xs font-normal ml-2 text-gray-500">(輸入對象，幫你想文案)</span>
-                </label>
-                <div class="flex gap-2">
-                    <input type="text" id="aiInput" placeholder="例如：孫子、老王、媳婦" class="flex-1 border p-2 rounded focus:outline-blue-500">
-                    <button onclick="generateAiText()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold whitespace-nowrap flex items-center gap-1">
-                        <span id="aiBtnText">生成</span>
-                        <div id="aiLoader" class="loader hidden"></div>
+            <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-blue-500">
+                <h2 class="font-bold text-gray-700 mb-2 flex items-center">
+                    📝 文字內容與排版
+                </h2>
+                <textarea id="customText" rows="3" class="w-full bg-gray-50 border border-gray-300 rounded p-2 text-lg focus:ring-2 focus:ring-blue-400 outline-none mb-3" placeholder="早安！&#10;祝您順心如意">認同請分享&#10;平安喜樂</textarea>
+                
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <label class="flex items-center space-x-2 cursor-pointer bg-gray-100 p-2 rounded hover:bg-gray-200">
+                        <input type="checkbox" id="isVertical" class="w-5 h-5 text-blue-600 rounded" onchange="drawCanvas()">
+                        <span class="font-bold text-gray-700">直排文字 (Vertical)</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer bg-gradient-to-r from-pink-100 to-yellow-100 p-2 rounded hover:from-pink-200 hover:to-yellow-200">
+                        <input type="checkbox" id="isRainbow" class="w-5 h-5 text-pink-600 rounded" onchange="drawCanvas()">
+                        <span class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-purple-600">七彩霓虹字</span>
+                    </label>
+                </div>
+
+                <div class="space-y-2 bg-gray-50 p-3 rounded">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-gray-500">左右位置 (X)</span>
+                        <input type="range" id="posX" min="0" max="100" value="50" class="w-2/3 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-gray-500">上下位置 (Y)</span>
+                        <input type="range" id="posY" min="0" max="100" value="50" class="w-2/3 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-yellow-500">
+                <h2 class="font-bold text-gray-700 mb-2">🎨 樣式調整</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 block mb-1">文字大小</label>
+                        <input type="range" id="fontSize" min="30" max="120" value="60" class="w-full accent-yellow-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 block mb-1">主要顏色</label>
+                        <input type="color" id="textColor" value="#FFFF00" class="w-full h-8 cursor-pointer rounded border border-gray-300">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 block mb-1">描邊顏色</label>
+                        <input type="color" id="strokeColor" value="#000000" class="w-full h-8 cursor-pointer rounded border border-gray-300">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 block mb-1">描邊粗細</label>
+                        <input type="range" id="strokeWidth" min="0" max="15" value="6" class="w-full accent-gray-700">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label class="text-xs font-bold text-gray-500 block mb-1">選擇字體</label>
+                    <select id="fontFamily" onchange="drawCanvas()" class="w-full p-2 border rounded bg-gray-50">
+                        <option value="'Noto Serif TC', serif">宋體 (莊重)</option>
+                        <option value="'Noto Sans TC', sans-serif">黑體 (現代)</option>
+                        <option value="'Microsoft JhengHei', sans-serif" selected>微軟正黑體 (經典)</option>
+                        <option value="cursive">標楷體 (書法)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-purple-500">
+                <h2 class="font-bold text-gray-700 mb-2">🌄 背景圖片</h2>
+                
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="aiImagePrompt" placeholder="AI 關鍵字：例如 蓮花, 佛祖, 日出" class="flex-1 border p-2 rounded text-sm focus:border-purple-500 outline-none">
+                    <button onclick="generateAiImage()" id="aiImgBtn" class="bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 font-bold text-sm flex items-center gap-2 whitespace-nowrap">
+                        <span>AI 生成</span>
+                        <div id="aiImgLoader" class="loader hidden"></div>
                     </button>
                 </div>
+
+                <div class="grid grid-cols-4 gap-2">
+                    <img src="https://images.unsplash.com/photo-1516021876483-37651c51c14b?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-14 w-full object-cover rounded border hover:border-purple-500">
+                    <img src="https://images.unsplash.com/photo-1621258284534-192a0e445345?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-14 w-full object-cover rounded border hover:border-purple-500">
+                    <img src="https://images.unsplash.com/photo-1507643179173-8b03236ea67e?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-14 w-full object-cover rounded border hover:border-purple-500">
+                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-14 w-full object-cover rounded border hover:border-purple-500">
+                </div>
+                <label class="block mt-2 text-center text-xs text-blue-500 cursor-pointer underline hover:text-blue-700">
+                    📂 上傳自己的照片
+                    <input type="file" id="uploadInput" class="hidden" accept="image/*" onchange="handleUpload(this)">
+                </label>
             </div>
 
-            <div>
-                <label class="block text-gray-700 font-bold mb-2">✏️ 自訂祝福語：</label>
-                <textarea id="customText" rows="3" class="w-full border-2 border-gray-300 rounded p-2 text-xl focus:border-red-400 outline-none font-bold text-red-700" placeholder="早安！&#10;祝您順心如意">早安！&#10;祝您順心如意</textarea>
-            </div>
-
-            <div>
-                <div class="flex justify-between items-end mb-2">
-                    <label class="block text-gray-700 font-bold">🌄 選擇背景：</label>
-                    <span id="festival-tag" class="hidden bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full font-bold">🎉 節日推薦中</span>
-                </div>
-                <div class="grid grid-cols-4 gap-2" id="bgGrid">
-                    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-16 w-full object-cover rounded border-2 hover:border-red-500 ring-2 ring-transparent">
-                    <img src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-16 w-full object-cover rounded border-2 hover:border-red-500">
-                    <img src="https://images.unsplash.com/photo-1528360983277-13d9b152c6d1?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-16 w-full object-cover rounded border-2 hover:border-red-500">
-                    <img src="https://images.unsplash.com/photo-1490750967868-58cb75069ed6?w=200&q=80" onclick="changeBg(this.src)" class="cursor-pointer h-16 w-full object-cover rounded border-2 hover:border-red-500">
-                </div>
-            </div>
-
-            <div>
-                <div class="flex justify-between mb-2">
-                    <label class="block text-gray-700 font-bold">🌹 添加貼圖 (點擊加入)：</label>
-                    <button onclick="clearStickers()" class="text-xs text-red-500 underline">清除所有貼圖</button>
-                </div>
-                <div class="flex gap-4 overflow-x-auto pb-2 text-3xl">
-                    <button onclick="addSticker('🌹')" class="hover:bg-gray-100 p-2 rounded transition">🌹</button>
-                    <button onclick="addSticker('☕')" class="hover:bg-gray-100 p-2 rounded transition">☕</button>
-                    <button onclick="addSticker('🙏')" class="hover:bg-gray-100 p-2 rounded transition">🙏</button>
-                    <button onclick="addSticker('☀️')" class="hover:bg-gray-100 p-2 rounded transition">☀️</button>
-                    <button onclick="addSticker('🍎')" class="hover:bg-gray-100 p-2 rounded transition">🍎</button>
-                    <button onclick="addSticker('👍')" class="hover:bg-gray-100 p-2 rounded transition">👍</button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-sm font-bold text-gray-600">文字顏色</label>
-                    <input type="color" id="textColor" value="#FF0000" class="w-full h-10 cursor-pointer rounded">
-                </div>
-                <div>
-                    <label class="text-sm font-bold text-gray-600">文字大小</label>
-                    <input type="range" id="fontSize" min="30" max="100" value="60" class="w-full cursor-pointer accent-red-500">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 gap-3 pt-2">
-                <button onclick="shareImage()" class="bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 rounded-xl text-xl shadow-md flex items-center justify-center gap-2 transition transform active:scale-95">
-                    <svg viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.97 3.03 7.31 7.15 8.35-.3.94-1.1 2.58-1.28 2.97-.18.42.17.85.73.57 2.25-1.12 5.38-3.08 6.45-3.92.98.24 2.01.37 3.06.37 5.52 0 10-3.92 10-8.75S17.52 2 12 2z"/></svg>
-                    LINE 分享給好友
-                </button>
-                <button onclick="downloadImage()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl text-lg shadow-md">
-                    ⬇️ 下載圖片
-                </button>
-            </div>
+            <button onclick="downloadImage()" class="w-full bg-green-600 hover:bg-green-700 text-white font-black py-3 rounded-xl text-xl shadow-lg transition transform hover:scale-[1.02]">
+                ⬇️ 下載圖片傳 LINE
+            </button>
         </div>
 
-        <div class="flex flex-col items-center bg-gray-200 rounded-xl p-4 justify-start">
-            <h3 class="text-lg font-bold text-gray-500 mb-2">圖片預覽</h3>
-            <canvas id="memeCanvas" width="500" height="500" class="bg-white w-full max-w-[500px] h-auto rounded shadow-2xl"></canvas>
-            <p class="text-xs text-gray-500 mt-2">提示：若無法直接分享，請先下載再傳送。</p>
+        <div class="lg:col-span-7 flex flex-col items-center justify-start bg-gray-200 rounded-xl p-4 min-h-[500px]">
+            <canvas id="memeCanvas" width="800" height="800" class="bg-white w-full max-w-[600px] h-auto rounded shadow-2xl"></canvas>
+            <p class="text-xs text-gray-500 mt-3">提示：若文字超出畫面，請調整文字大小或位置 X/Y</p>
         </div>
 
     </main>
 
     <script>
-        // --- 核心變數 ---
+        // --- 變數宣告 ---
         const canvas = document.getElementById('memeCanvas');
         const ctx = canvas.getContext('2d');
-        const textInput = document.getElementById('customText');
-        const textColorInput = document.getElementById('textColor');
-        const fontSizeInput = document.getElementById('fontSize');
         
-        // 狀態管理
+        // 輸入元件
+        const textInput = document.getElementById('customText');
+        const fontSizeInput = document.getElementById('fontSize');
+        const textColorInput = document.getElementById('textColor');
+        const strokeColorInput = document.getElementById('strokeColor');
+        const strokeWidthInput = document.getElementById('strokeWidth');
+        const fontFamilyInput = document.getElementById('fontFamily');
+        const posXInput = document.getElementById('posX');
+        const posYInput = document.getElementById('posY');
+        const isVerticalInput = document.getElementById('isVertical');
+        const isRainbowInput = document.getElementById('isRainbow');
+
         let currentBgImage = new Image();
         currentBgImage.crossOrigin = "anonymous";
-        let stickers = []; // 存放貼圖物件 {text: '🌹', x: 50, y: 50}
+        // 預設一張很長輩的荷花圖
+        currentBgImage.src = 'https://images.unsplash.com/photo-1516021876483-37651c51c14b?w=800&q=80';
         
-        // --- 1. 初始化與節日偵測 ---
-        window.onload = function() {
-            checkHoliday();
-            // 預設圖片
-            changeBg('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80');
-        };
+        currentBgImage.onload = drawCanvas;
 
-        function checkHoliday() {
-            const today = new Date();
-            const month = today.getMonth() + 1;
-            const day = today.getDate();
-            const msgEl = document.getElementById('holiday-msg');
-            const tagEl = document.getElementById('festival-tag');
+        // --- 事件監聽 (所有 input 變動都重畫) ---
+        const inputs = [textInput, fontSizeInput, textColorInput, strokeColorInput, strokeWidthInput, posXInput, posYInput];
+        inputs.forEach(el => el.addEventListener('input', drawCanvas));
 
-            // 簡單的節日邏輯
-            let greeting = "";
-            let recommendText = "";
-
-            if (month === 12 && day === 25) {
-                greeting = "🎄 聖誕快樂！平安喜樂！";
-                recommendText = "聖誕佳節\n願您平安健康";
-            } else if (month === 1 && day === 1) {
-                greeting = "🎆 元旦快樂！新年新希望！";
-                recommendText = "新年快樂\n好運旺旺來";
-            } else if (month === 5 && day >= 1 && day <= 15) { 
-                // 假設母親節附近
-                greeting = "🌸 溫馨五月，感恩母親";
-                recommendText = "母親節快樂\n身體健康吃百二";
-            }
-            
-            if (greeting) {
-                msgEl.innerText = greeting;
-                msgEl.classList.add('text-red-600');
-                tagEl.classList.remove('hidden');
-                // 自動帶入推薦文字（使用者可修改）
-                textInput.value = recommendText;
-            }
-        }
-
-        // --- 2. 繪圖核心邏輯 ---
+        // --- 核心繪圖邏輯 ---
         function drawCanvas() {
-            // 清空
+            // 1. 清空畫布
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 畫背景
-            if (currentBgImage.complete && currentBgImage.naturalHeight !== 0) {
-                 ctx.drawImage(currentBgImage, 0, 0, canvas.width, canvas.height);
+            // 2. 畫背景 (Cover 模式)
+            if (currentBgImage.complete && currentBgImage.naturalWidth !== 0) {
+                // 簡單的 scaling 邏輯，保持比例填滿
+                const scale = Math.max(canvas.width / currentBgImage.width, canvas.height / currentBgImage.height);
+                const x = (canvas.width / 2) - (currentBgImage.width / 2) * scale;
+                const y = (canvas.height / 2) - (currentBgImage.height / 2) * scale;
+                ctx.drawImage(currentBgImage, x, y, currentBgImage.width * scale, currentBgImage.height * scale);
+            } else {
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0,0, canvas.width, canvas.height);
             }
 
-            // 畫貼圖 (在文字下方，背景上方)
-            ctx.font = "80px Arial"; // 貼圖大小
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            stickers.forEach(s => {
-                ctx.fillText(s.text, s.x, s.y);
-            });
-
-            // 畫主要文字
-            const fontSize = fontSizeInput.value;
-            ctx.font = `bold ${fontSize}px "Noto Serif TC", "Microsoft JhengHei"`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            // 3. 設定文字基礎屬性
+            const fontSize = parseInt(fontSizeInput.value);
+            const fontFamily = fontFamilyInput.value;
+            ctx.font = `bold ${fontSize}px ${fontFamily}`;
+            ctx.textBaseline = 'top'; // 統一使用 top 比較好計算直排
             
             const text = textInput.value;
             const lines = text.split('\n');
-            const lineHeight = parseInt(fontSize) * 1.3;
-            // 計算文字區塊總高度，讓它垂直置中
-            const startY = (canvas.height - (lines.length - 1) * lineHeight) / 2;
+            const isVertical = isVerticalInput.checked;
+            
+            // 計算位置 (將 0-100 的 slider 轉換為 canvas 座標)
+            // 預設 50 是中心點
+            const offsetX = (parseInt(posXInput.value) - 50) * (canvas.width / 50); 
+            const offsetY = (parseInt(posYInput.value) - 50) * (canvas.height / 50);
+
+            // 4. 準備顏色 (一般色 或 彩虹漸層)
+            let fillStyle;
+            if (isRainbowInput.checked) {
+                // 建立 45度角漸層
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, "red");
+                gradient.addColorStop(0.2, "orange");
+                gradient.addColorStop(0.4, "yellow");
+                gradient.addColorStop(0.6, "green");
+                gradient.addColorStop(0.8, "blue");
+                gradient.addColorStop(1, "purple");
+                fillStyle = gradient;
+            } else {
+                fillStyle = textColorInput.value;
+            }
+
+            ctx.fillStyle = fillStyle;
+            ctx.strokeStyle = strokeColorInput.value;
+            ctx.lineWidth = parseInt(strokeWidthInput.value);
+            ctx.lineJoin = 'round'; // 讓描邊圓潤
+
+            // 5. 繪製文字 (區分 直排 vs 橫排)
+            
+            if (isVertical) {
+                drawVerticalText(lines, fontSize, offsetX, offsetY);
+            } else {
+                drawHorizontalText(lines, fontSize, offsetX, offsetY);
+            }
+        }
+
+        // --- 橫排繪製邏輯 ---
+        function drawHorizontalText(lines, fontSize, offsetX, offsetY) {
+            ctx.textAlign = 'center';
+            const lineHeight = fontSize * 1.2;
+            // 計算整個文字區塊的高度，用來做垂直置中
+            const totalHeight = lines.length * lineHeight;
+            const startY = (canvas.height - totalHeight) / 2 + offsetY;
+            const startX = (canvas.width / 2) + offsetX;
 
             lines.forEach((line, index) => {
                 const y = startY + (index * lineHeight);
-                const x = canvas.width / 2;
-
-                // 粗白邊 (長輩圖靈魂)
-                ctx.lineWidth = 8;
-                ctx.strokeStyle = 'white';
-                ctx.strokeText(line, x, y);
-                
-                // 細黑邊 (增加對比)
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = 'black';
-                ctx.strokeText(line, x, y);
-
-                // 填色
-                ctx.fillStyle = textColorInput.value;
-                ctx.fillText(line, x, y);
+                // 先畫陰影/描邊
+                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowBlur = 4;
+                ctx.strokeText(line, startX, y);
+                // 再畫字
+                ctx.shadowBlur = 0; // 字體本身不要糊掉
+                ctx.fillText(line, startX, y);
             });
         }
 
-        // --- 3. 事件監聽 ---
-        textInput.addEventListener('input', drawCanvas);
-        textColorInput.addEventListener('input', drawCanvas);
-        fontSizeInput.addEventListener('input', drawCanvas);
+        // --- 直排繪製邏輯 (長輩圖靈魂) ---
+        function drawVerticalText(lines, fontSize, offsetX, offsetY) {
+            // 直排邏輯：
+            // 1. 行是從「右到左」排列
+            // 2. 字是從「上到下」排列
+            // 3. 標點符號大致置中 (這裡做簡單版)
 
-        function changeBg(src) {
-            currentBgImage.src = src.replace("w=200", "w=600");
-            currentBgImage.onload = drawCanvas;
-        }
+            const lineHeight = fontSize * 1.2; // 行距 (其實是直排的列寬)
+            const totalWidth = lines.length * lineHeight; // 總寬度
+            
+            // 起始 X 座標 (最右邊的一行)
+            // 因為是從右到左，第一行的 X 應該是 (中心 + 總寬一半)
+            // 但因為我們是一行一行往左畫，所以起始點要偏右
+            let currentX = (canvas.width / 2) + (totalWidth / 2) - (lineHeight/2) + offsetX; 
+            
+            // Y 座標的起始點 (垂直置中)
+            // 這邊要取最長的一行來算高度，或者每行分開算
+            // 為了簡單美觀，我們假設每行都從同樣的頂端位置開始
+            // 這裡取最長那行的字數
+            const maxChars = Math.max(...lines.map(l => l.length));
+            const totalHeight = maxChars * fontSize; 
+            const startY = (canvas.height - totalHeight) / 2 + offsetY;
 
-        // --- 4. 貼圖功能 ---
-        function addSticker(emoji) {
-            // 隨機位置，避免全部疊在一起
-            const x = Math.random() * (canvas.width - 100) + 50;
-            const y = Math.random() * (canvas.height - 100) + 50;
-            stickers.push({ text: emoji, x: x, y: y });
-            drawCanvas();
-        }
+            // 遍歷每一行 (line)
+            lines.forEach((line) => {
+                let currentY = startY;
+                
+                // 如果這行字數比較少，要不要垂直置中？
+                // 通常長輩圖直排是「靠上對齊」或「置中」。這裡做簡單的靠上(相對於 startY)
+                // 若要每行獨立置中： currentY = (canvas.height - (line.length * fontSize)) / 2 + offsetY;
 
-        function clearStickers() {
-            stickers = [];
-            drawCanvas();
-        }
+                // 遍歷該行的每一個字 (char)
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    // 這裡可以針對標點符號做旋轉處理，但 Canvas 原生不做比較簡單
+                    // 簡單處理：如果是標點，稍微調整位置
+                    
+                    // 繪製
+                    ctx.textAlign = 'center';
+                    
+                    // 描邊
+                    ctx.shadowColor = "rgba(0,0,0,0.5)";
+                    ctx.shadowBlur = 4;
+                    ctx.strokeText(char, currentX, currentY);
+                    
+                    // 填色
+                    ctx.shadowBlur = 0;
+                    ctx.fillText(char, currentX, currentY);
 
-        // --- 5. AI 文案生成 (模擬 API) ---
-        function generateAiText() {
-            const input = document.getElementById('aiInput').value;
-            const btnText = document.getElementById('aiBtnText');
-            const loader = document.getElementById('aiLoader');
-
-            if (!input) {
-                alert("請輸入對象，例如：朋友、孫子");
-                return;
-            }
-
-            // UI 狀態切換
-            btnText.innerText = "生成中...";
-            loader.classList.remove('hidden');
-
-            // 模擬 API 延遲
-            setTimeout(() => {
-                let result = "";
-                // 簡單的關鍵字規則 (在真實環境中，這裡會用 fetch() 呼叫 OpenAI API)
-                if (input.includes("孫")) {
-                    result = "乖孫早安\n天冷記得穿外套\n阿公阿嬤愛你";
-                } else if (input.includes("友") || input.includes("同學")) {
-                    result = "老朋友早安\n不管天氣如何\n心情都要美麗";
-                } else if (input.includes("兒") || input.includes("女")) {
-                    result = "寶貝兒女\n工作辛苦了\n記得多喝水";
-                } else {
-                    result = `給親愛的${input}\n願您今天\n充滿陽光與喜樂`;
+                    // 往下移動一個字高
+                    currentY += fontSize;
                 }
 
-                textInput.value = result;
-                drawCanvas(); // 重新繪圖
-
-                // 還原 UI
-                btnText.innerText = "生成";
-                loader.classList.add('hidden');
-            }, 800); 
+                // 畫完一行，X 往左移動 (扣掉行寬)
+                currentX -= lineHeight;
+            });
         }
 
-        // --- 6. 分享與下載功能 ---
-        
-        // 下載 (傳統方式)
+
+        // --- 輔助功能 ---
+        function changeBg(src) {
+            currentBgImage.src = src.replace("w=200", "w=800");
+        }
+
+        function handleUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentBgImage.src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function generateAiImage() {
+            const prompt = document.getElementById('aiImagePrompt').value;
+            const btn = document.getElementById('aiImgBtn');
+            const loader = document.getElementById('aiImgLoader');
+            
+            if(!prompt) return alert('請輸入關鍵字');
+            
+            btn.disabled = true;
+            loader.classList.remove('hidden');
+            
+            // 模擬 API 延遲
+            await new Promise(r => setTimeout(r, 2000));
+            
+            // 使用 Unsplash Source 做模擬
+            const newUrl = `https://source.unsplash.com/800x800/?${encodeURIComponent(prompt)}`;
+            // 加上時間戳避免快取
+            changeBg(newUrl + '&t=' + new Date().getTime());
+            
+            btn.disabled = false;
+            loader.classList.add('hidden');
+        }
+
         function downloadImage() {
             const link = document.createElement('a');
-            link.download = `問候圖_${new Date().getTime()}.png`;
+            link.download = `長輩圖_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-        }
-
-        // LINE 分享 (使用 Web Share API)
-        async function shareImage() {
-            // 檢查瀏覽器是否支援 Web Share API
-            if (!navigator.share) {
-                alert("您的瀏覽器不支援直接分享，請使用「下載圖片」按鈕，再手動傳到 LINE 喔！");
-                downloadImage(); // 自動觸發下載當作備案
-                return;
-            }
-
-            // 將 Canvas 轉為 Blob (檔案物件)
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], "greeting.png", { type: "image/png" });
-                
-                try {
-                    await navigator.share({
-                        title: '來自好友的祝福',
-                        text: textInput.value.replace('\n', ' '), // 預覽文字
-                        files: [file] // 這是關鍵，直接分享檔案
-                    });
-                    console.log('分享成功');
-                } catch (err) {
-                    console.log('分享取消或失敗', err);
-                    // 如果使用者取消分享，不做動作
-                }
-            });
         }
     </script>
 </body>
